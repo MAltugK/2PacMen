@@ -1,10 +1,8 @@
-import pygame
 import socket
+import time
 from tkinter import *
-from tkinter import messagebox
-from pyngrok import ngrok
 
-
+import pygame
 
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -16,6 +14,15 @@ yellow = (255, 255, 0)
 
 Gameicon = pygame.image.load('images/pacman.png')
 pygame.display.set_icon(Gameicon)
+
+root = Tk()
+IPpopup = Tk()
+Label(IPpopup, text='IP Address').grid(row=0)
+Label(IPpopup, text='Port').grid(row=1)
+IpAddressBox = Text(IPpopup, height=10, width=25)
+PortBox = Text(IPpopup, height=10, width=25)
+IpAddressBox.grid(row=0, column=1)
+PortBox.grid(row=1, column=1)
 
 
 # This class represents the bar at the bottom that the player controls
@@ -372,22 +379,53 @@ b_h = (3 * 60) + 19  # Binky height
 i_w = 303 - 16 - 32  # Inky width
 c_w = 303 + (32 - 16)  # Clyde width
 
+s = socket.socket()
+
+
+def host_new_server_action():
+    IpAddress = IpAddressBox.get("1.0", "end-1c")
+    Port = PortBox.get("1.0", "end-1c")
+    IPpopup.destroy()
+    print(IpAddress)
+    print(Port)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((IpAddress, int(Port)))
+    s.listen(1)
+
+
+def connect_session():
+    IpAddress = IpAddressBox.get("1.0", "end-1c")
+    Port = PortBox.get("1.0", "end-1c")
+    IPpopup.destroy()
+    print(IpAddress)
+    print(Port)
+    try:
+        s.connect((IpAddress, Port))
+    except socket.error as msg:
+        print("[Server aktif değil.] Mesaj:", msg)
+
+
 def host_action():
-    print("Host button clicked")
+    root.destroy()
+    connectButton = Button(IPpopup, text="Host Session", command=host_new_server_action).grid(row=2)
+    mainloop()
+
 
 def client_action():
-    print("Client button clicked")
+    root.destroy()
+    connectButton = Button(IPpopup, text="Connect Session", command=connect_session).grid(row=2)
+    mainloop()
 
 
 def startGame():
-    root = Tk()
     root.title("Popup")
 
     host_button = Button(root, text="Host", command=host_action)
     client_button = Button(root, text="Client", command=client_action)
-
-    host_button.pack()
-    client_button.pack()
+    root.geometry('100x50')
+    host_button.pack(side='left')
+    client_button.pack(side='right')
+    root.mainloop()
 
     all_sprites_list = pygame.sprite.RenderPlain()
 
@@ -414,8 +452,8 @@ def startGame():
     c_steps = 0
 
     # Create the player paddle object
-    Pacman1 = Player(w-30, p_h, "images/pacman_green.png")
-    Pacman2 = Player(w+30, p_h, "images/pacman_yellow.png")
+    Pacman1 = Player(w - 30, p_h, "images/pacman_green.png")
+    Pacman2 = Player(w + 30, p_h, "images/pacman_yellow.png")
 
     all_sprites_list.add(Pacman1)
     pacman_collide.add(Pacman1)
@@ -475,41 +513,46 @@ def startGame():
             if event.type == pygame.QUIT:
                 done = True
 
+            time.sleep(5)
+            c, addr = s.accept()
+
+            message = s.recv(1024)
+            if message == "adown" or message == "dup":
+                Pacman1.changespeed(-30, 0)
+            if message == "ddown" or message == "aup":
+                Pacman1.changespeed(30, 0)
+            if message == "wdown" or message == "sup":
+                Pacman1.changespeed(0, -30)
+            if message == "sdown" or message == "wup":
+                Pacman1.changespeed(0, 30)
+
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    Pacman1.changespeed(-30, 0)
-                if event.key == pygame.K_RIGHT:
-                    Pacman1.changespeed(30, 0)
-                if event.key == pygame.K_UP:
-                    Pacman1.changespeed(0, -30)
-                if event.key == pygame.K_DOWN:
-                    Pacman1.changespeed(0, 30)
                 if event.key == pygame.K_a:
                     Pacman2.changespeed(-30, 0)
+                    s.send("adown")
                 if event.key == pygame.K_d:
                     Pacman2.changespeed(30, 0)
+                    s.send("ddown")
                 if event.key == pygame.K_w:
                     Pacman2.changespeed(0, -30)
+                    s.send("wdown")
                 if event.key == pygame.K_s:
                     Pacman2.changespeed(0, 30)
+                    s.send("sdown")
 
             if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT:
-                    Pacman1.changespeed(30, 0)
-                if event.key == pygame.K_RIGHT:
-                    Pacman1.changespeed(-30, 0)
-                if event.key == pygame.K_UP:
-                    Pacman1.changespeed(0, 30)
-                if event.key == pygame.K_DOWN:
-                    Pacman1.changespeed(0, -30)
                 if event.key == pygame.K_a:
                     Pacman2.changespeed(30, 0)
+                    s.send("aup")
                 if event.key == pygame.K_d:
                     Pacman2.changespeed(-30, 0)
+                    s.send("dup")
                 if event.key == pygame.K_w:
                     Pacman2.changespeed(0, 30)
+                    s.send("wup")
                 if event.key == pygame.K_s:
                     Pacman2.changespeed(0, -30)
+                    s.send("sup")
 
         # ALL EVENT PROCESSING SHOULD GO ABOVE THIS COMMENT
 
@@ -565,20 +608,22 @@ def startGame():
         text = font.render("Yellow Score: " + str(yellow_score) + "/" + str(bll), True, red)
         screen.blit(text, [10, 30])
 
-        if yellow_score+green_score == bll:
-            if yellow_score>green_score:
+        if yellow_score + green_score == bll:
+            if yellow_score > green_score:
                 doNext("Congratulations, Yellow won!", 145, all_sprites_list, block_list, monsta_list, pacman_collide,
-                   wall_list, gate)
-            if green_score>yellow_score:
+                       wall_list, gate)
+            if green_score > yellow_score:
                 doNext("Congratulations, Green won!", 145, all_sprites_list, block_list, monsta_list, pacman_collide,
-                   wall_list, gate)
+                       wall_list, gate)
         monsta_hit_list_yellow = pygame.sprite.spritecollide(Pacman1, monsta_list, False)
         monsta_hit_list_green = pygame.sprite.spritecollide(Pacman2, monsta_list, False)
 
         if monsta_hit_list_yellow:
-            doNext("Game Over, Yellow Wins", 180, all_sprites_list, block_list, monsta_list, pacman_collide, wall_list, gate)
+            doNext("Game Over, Yellow Wins", 180, all_sprites_list, block_list, monsta_list, pacman_collide, wall_list,
+                   gate)
         if monsta_hit_list_green:
-            doNext("Game Over, Green Wins", 180, all_sprites_list, block_list, monsta_list, pacman_collide, wall_list, gate)
+            doNext("Game Over, Green Wins", 180, all_sprites_list, block_list, monsta_list, pacman_collide, wall_list,
+                   gate)
 
         # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
 
