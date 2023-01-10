@@ -1,8 +1,10 @@
 import socket
 import time
 from tkinter import *
-
+from pyngrok import ngrok, conf, installer
 import pygame
+import os
+import ssl
 
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -381,16 +383,27 @@ c_w = 303 + (32 - 16)  # Clyde width
 
 s = socket.socket()
 
-
 def host_new_server_action():
-    IpAddress = IpAddressBox.get("1.0", "end-1c")
-    Port = PortBox.get("1.0", "end-1c")
-    IPpopup.destroy()
-    print(IpAddress)
-    print(Port)
+    
+    # an un-reserved port number
+    port = 50000
+    # configure ngrok
+    pyngrok_config = conf.get_default()
+    if not os.path.exists(pyngrok_config.ngrok_path):
+        myssl = ssl.create_default_context()
+        myssl.check_hostname=False
+        myssl.verify_mode=ssl.CERT_NONE
+        installer.install_ngrok(pyngrok_config.ngrok_path, context=myssl)
+    # open a tcp tunnel, get its IP and port to give to the client
+    tunnel_url = ngrok.connect(port, proto='tcp').public_url
+    host = socket.gethostbyname(tunnel_url.strip('tcp://').split(':')[0])
+    port = int(tunnel_url.strip('tcp://').split(':')[1])
+    print("Code: ", host)
+    print("Port: ", port)
+    # create the socket and bind it to local host
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind((IpAddress, int(Port)))
-    s.listen(1)
+    s.bind(("localhost", 50000))
+    s.listen()
 
 
 def connect_session():
@@ -400,14 +413,19 @@ def connect_session():
     print(IpAddress)
     print(Port)
     try:
-        s.connect((IpAddress, Port))
+        s.connect((IpAddress, int(Port)))
+        print("Connected!")
+
     except socket.error as msg:
-        print("[Server aktif değil.] Mesaj:", msg)
+        print("Error while connecting:", msg)
 
 
 def host_action():
-    root.destroy()
-    connectButton = Button(IPpopup, text="Host Session", command=host_new_server_action).grid(row=2)
+    #root.destroy()
+    print("host action")
+    host_new_server_action()
+    print("pout of host action")
+    #connectButton = Button(IPpopup, text="Host Session", command=host_new_server_action).grid(row=2)
     mainloop()
 
 
@@ -425,8 +443,9 @@ def startGame():
     root.geometry('100x50')
     host_button.pack(side='left')
     client_button.pack(side='right')
+    print("host at 445")
     root.mainloop()
-
+    print("host at 446")
     all_sprites_list = pygame.sprite.RenderPlain()
 
     block_list = pygame.sprite.RenderPlain()
@@ -506,7 +525,7 @@ def startGame():
     done = False
 
     i = 0
-
+    print("host at 526")
     while done == False:
         # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
         for event in pygame.event.get():
@@ -514,7 +533,11 @@ def startGame():
                 done = True
 
             time.sleep(5)
-            c, addr = s.accept()
+            print("host at 534")
+            try:
+                c, addr = s.accept()
+            except socket.error as msg:
+                print("ERROR:", msg)
 
             message = s.recv(1024)
             if message == "adown" or message == "dup":
