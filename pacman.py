@@ -527,9 +527,19 @@ def startGame():
     i = 0
     print("host at 526")
     time.sleep(25)
+    message = ''
+
     if hostOrClient == "Host":
         s.accept()
     while done == False:
+
+
+        try:
+            message = s.recv(1024).decode("utf-8")
+            print(message)
+        except:
+            print("no message got")
+
         # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -537,49 +547,42 @@ def startGame():
             print("host at 534")
 
 
-            print("Bura geldin")
-
-            try:
-                message = s.recv(1024).decode('ascii')
-                if message == "adown" or message == "dup":
-                    Pacman1.changespeed(-30, 0)
-                if message == "ddown" or message == "aup":
-                    Pacman1.changespeed(30, 0)
-                if message == "wdown" or message == "sup":
-                    Pacman1.changespeed(0, -30)
-                if message == "sdown" or message == "wup":
-                    Pacman1.changespeed(0, 30)
-            except:
-                print("no message got")
-
+            if message == 'a':
+                Pacman1.changespeed(-30, 0)
+            if message == 'd':
+                Pacman1.changespeed(30, 0)
+            if message == 'w':
+                Pacman1.changespeed(0, -30)
+            if message == 's':
+                Pacman1.changespeed(0, 30)
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_a:
                     Pacman2.changespeed(-30, 0)
-                    s.send("adown".encode('ascii'))
+                    s.send('a'.encode("utf-8"))
                 if event.key == pygame.K_d:
                     Pacman2.changespeed(30, 0)
-                    s.send("ddown".encode('ascii'))
+                    s.send('d'.encode("utf-8"))
                 if event.key == pygame.K_w:
                     Pacman2.changespeed(0, -30)
-                    s.send("wdown".encode('ascii'))
+                    s.send('w'.encode("utf-8"))
                 if event.key == pygame.K_s:
                     Pacman2.changespeed(0, 30)
-                    s.send("sdown".encode('ascii'))
+                    s.send('s'.encode("utf-8"))
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_a:
                     Pacman2.changespeed(30, 0)
-                    s.send("aup".encode('ascii'))
+                    s.send('d'.encode("utf-8"))
                 if event.key == pygame.K_d:
                     Pacman2.changespeed(-30, 0)
-                    s.send("dup".encode('ascii'))
+                    s.send('a'.encode("utf-8"))
                 if event.key == pygame.K_w:
                     Pacman2.changespeed(0, 30)
-                    s.send("wup".encode('ascii'))
+                    s.send('s'.encode("utf-8"))
                 if event.key == pygame.K_s:
                     Pacman2.changespeed(0, -30)
-                    s.send("sup".encode('ascii'))
+                    s.send('w'.encode("utf-8"))
 
         # ALL EVENT PROCESSING SHOULD GO ABOVE THIS COMMENT
 
