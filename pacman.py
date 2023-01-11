@@ -5,6 +5,7 @@ from pyngrok import ngrok, conf, installer
 import pygame
 import os
 import ssl
+import threading
 
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -383,10 +384,8 @@ c_w = 303 + (32 - 16)  # Clyde width
 
 s = socket.socket()
 
+# server
 def host_new_server_action():
-    
-    # an un-reserved port number
-    port = 50000
     # configure ngrok
     pyngrok_config = conf.get_default()
     if not os.path.exists(pyngrok_config.ngrok_path):
@@ -403,43 +402,54 @@ def host_new_server_action():
     # create the socket and bind it to local host
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(("localhost", 50000))
-    s.listen()
+    
+    # listen the initial input puts
+    s.listen(1) 
+    print("Listening...")
+    connection, incoming = s.accept()
+    print("Player from ", incoming[0], " joined your game.")
+    
+    # mainloop()
 
+    while True:
+        # send your own move
+        connection.send()
+        # update according to the move
 
-def connect_session():
+        # take opponent's move
+        opponent_move = connection.recv(1024).decode()
+        # update according to the move
+    
+
+# client
+def connect_session(): 
     IpAddress = IpAddressBox.get("1.0", "end-1c")
     Port = PortBox.get("1.0", "end-1c")
     IPpopup.destroy()
-    print(IpAddress)
-    print(Port)
     try:
         s.connect((IpAddress, int(Port)))
-        print("Connected!")
+        print("Connected from client!")
 
     except socket.error as msg:
         print("Error while connecting:", msg)
 
-
-def host_action():
-    #root.destroy()
-    print("host action")
-    host_new_server_action()
-    print("pout of host action")
-    #connectButton = Button(IPpopup, text="Host Session", command=host_new_server_action).grid(row=2)
-    mainloop()
+    # send the first message to let them know you connected
 
 
-def client_action():
-    root.destroy()
-    connectButton = Button(IPpopup, text="Connect Session", command=connect_session).grid(row=2)
-    mainloop()
-
+def initialize():
+    host_button = Button(root, text="Host", command=host_new_server_action)
+    client_button = Button(root, text="Client", command=connect_session)
+    root.geometry('100x50')
+    host_button.pack(side='left')
+    client_button.pack(side='right')
+    print("host at 445")
+    root.mainloop()
 
 def startGame():
     root.title("Popup")
-
-    host_button = Button(root, text="Host", command=host_action)
-    client_button = Button(root, text="Client", command=client_action)
+    
+    host_button = Button(root, text="Host", command=host_new_server_action)
+    client_button = Button(root, text="Client", command=connect_session)
     root.geometry('100x50')
     host_button.pack(side='left')
     client_button.pack(side='right')
@@ -524,6 +534,7 @@ def startGame():
     green_score = 0
     done = False
 
+def moves():
     i = 0
     print("host at 526")
     while done == False:
@@ -693,6 +704,12 @@ def doNext(message, left, all_sprites_list, block_list, monsta_list, pacman_coll
         clock.tick(10)
 
 
-startGame()
 
-pygame.quit()
+if __name__ == "__main__":
+
+    t1 = threading.Thread(target=initialize)
+    t1.start()
+
+
+
+    pygame.quit()
