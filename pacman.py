@@ -5,7 +5,7 @@ from pyngrok import ngrok, conf, installer
 import pygame
 import os
 import ssl
-import threading
+import sys
 
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -14,7 +14,7 @@ green = (0, 255, 0)
 red = (255, 0, 0)
 purple = (255, 0, 255)
 yellow = (255, 255, 0)
-
+hostOrClient = ""
 Gameicon = pygame.image.load('images/pacman.png')
 pygame.display.set_icon(Gameicon)
 
@@ -100,7 +100,6 @@ def setupRoomOne(all_sprites_list):
     # return our new list
     return wall_list
 
-
 def setupGate(all_sprites_list):
     gate = pygame.sprite.RenderPlain()
     gate.add(Wall(282, 242, 42, 2, white))
@@ -112,7 +111,7 @@ def setupGate(all_sprites_list):
 # It derives from the "Sprite" class in Pygame
 class Block(pygame.sprite.Sprite):
 
-    # Constructor. Pass in the color of the block, 
+    # Constructor. Pass in the color of the block,
     # and its x and y position
     def __init__(self, color, width, height):
         # Call the parent class (Sprite) constructor
@@ -127,12 +126,11 @@ class Block(pygame.sprite.Sprite):
 
         # Fetch the rectangle object that has the dimensions of the image
         # image.
-        # Update the position of this object by setting the values 
+        # Update the position of this object by setting the values
         # of rect.x and rect.y
         self.rect = self.image.get_rect()
 
     # This class represents the bar at the bottom that the player controls
-
 
 class Player(pygame.sprite.Sprite):
     # Set speed vector
@@ -209,7 +207,6 @@ class Player(pygame.sprite.Sprite):
             if gate_hit:
                 self.rect.left = old_x
                 self.rect.top = old_y
-
 
 # Inheritime Player klassist
 class Ghost(Player):
@@ -347,7 +344,7 @@ bl = len(Blinky_directions) - 1
 il = len(Inky_directions) - 1
 cl = len(Clyde_directions) - 1
 
-# Call this function so the Pygame library can initialize itself
+""" # Call this function so the Pygame library can initialize itself
 pygame.init()
 
 # Create an 606x606 sized screen
@@ -381,19 +378,21 @@ m_h = (4 * 60) + 19  # Monster height
 b_h = (3 * 60) + 19  # Binky height
 i_w = 303 - 16 - 32  # Inky width
 c_w = 303 + (32 - 16)  # Clyde width
+ """
+s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
-s = socket.socket()
 
-# server
 def host_new_server_action():
-    # PORT NO
+    # an un-reserved port number
     port = 50000
+    root.destroy()
+    IPpopup.destroy()
     # configure ngrok
     pyngrok_config = conf.get_default()
     if not os.path.exists(pyngrok_config.ngrok_path):
         myssl = ssl.create_default_context()
-        myssl.check_hostname=False
-        myssl.verify_mode=ssl.CERT_NONE
+        myssl.check_hostname = False
+        myssl.verify_mode = ssl.CERT_NONE
         installer.install_ngrok(pyngrok_config.ngrok_path, context=myssl)
     # open a tcp tunnel, get its IP and port to give to the client
     tunnel_url = ngrok.connect(port, proto='tcp').public_url
@@ -404,153 +403,50 @@ def host_new_server_action():
     # create the socket and bind it to local host
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(("localhost", 50000))
-    
-    # listen the initial input puts
-    s.listen(1) 
-    print("Listening...")
-    connection, incoming = s.accept()
-    print("Player from ", incoming[0], " joined your game.")
-    
-    
-    
-    
+    s.listen()
 
-# client
-def connect_session(): 
-    print("client called")
+
+def connect_session():
     IpAddress = IpAddressBox.get("1.0", "end-1c")
     Port = PortBox.get("1.0", "end-1c")
     IPpopup.destroy()
+    print(IpAddress)
+    print(Port)
     try:
         s.connect((IpAddress, int(Port)))
-        print("Connected from client!")
+        print("Connected!")
 
     except socket.error as msg:
         print("Error while connecting:", msg)
 
-    print("done with client creation")
-    # send the first message to let them know you connected
-
-    
-
 
 def host_action():
-    root.destroy()
-    connectButton = Button(IPpopup, text="Host Session", command=host_new_server_action).grid(row=2)
-    #root.destroy()
+    # root.destroy()
     print("host action")
     host_new_server_action()
-    print("out of host action")
-    #connectButton = Button(IPpopup, text="Host Session", command=host_new_server_action).grid(row=2)
-    #mainloop()
+    hostOrClient = "Host"
+    print("pout of host action")
+    mainloop()
 
 
 def client_action():
     root.destroy()
+    hostOrClient = "Client"
     connectButton = Button(IPpopup, text="Connect Session", command=connect_session).grid(row=2)
-    #mainloop()
-
-def initialize():
-    host_button = Button(root, text="Host", command=host_action)
-    client_button = Button(root, text="Client", command=client_action)
-    root.geometry('100x50')
-    host_button.pack(side='left')
-    client_button.pack(side='right')
-    
-    root.mainloop()
-
-def draw_game():
-    all_sprites_list = pygame.sprite.RenderPlain()
-
-    block_list = pygame.sprite.RenderPlain()
-
-    monsta_list = pygame.sprite.RenderPlain()
-
-    pacman_collide = pygame.sprite.RenderPlain()
-
-    wall_list = setupRoomOne(all_sprites_list)
-
-    gate = setupGate(all_sprites_list)
-
-    p_turn = 0
-    p_steps = 0
-
-    b_turn = 0
-    b_steps = 0
-
-    i_turn = 0
-    i_steps = 0
-
-    c_turn = 0
-    c_steps = 0
-
-    # Create the player paddle object
-    Pacman1 = Player(w - 30, p_h, "images/pacman_green.png")
-    Pacman2 = Player(w + 30, p_h, "images/pacman_yellow.png")
-
-    all_sprites_list.add(Pacman1)
-    pacman_collide.add(Pacman1)
-    all_sprites_list.add(Pacman2)
-    pacman_collide.add(Pacman2)
-
-    Blinky = Ghost(w, b_h, "images/Blinky.png")
-    monsta_list.add(Blinky)
-    all_sprites_list.add(Blinky)
-
-    Pinky = Ghost(w, m_h, "images/Pinky.png")
-    monsta_list.add(Pinky)
-    all_sprites_list.add(Pinky)
-
-    Inky = Ghost(i_w, m_h, "images/Inky.png")
-    monsta_list.add(Inky)
-    all_sprites_list.add(Inky)
-
-    Clyde = Ghost(c_w, m_h, "images/Clyde.png")
-    monsta_list.add(Clyde)
-    all_sprites_list.add(Clyde)
-
-    # Draw the grid
-    for row in range(19):
-        for column in range(19):
-            if (row == 7 or row == 8) and (column == 8 or column == 9 or column == 10):
-                continue
-            else:
-                block = Block(yellow, 4, 4)
-
-                # Set a random location for the block
-                block.rect.x = (30 * column + 6) + 26
-                block.rect.y = (30 * row + 6) + 26
-
-                b_collide = pygame.sprite.spritecollide(block, wall_list, False)
-                p_collide = pygame.sprite.spritecollide(block, pacman_collide, False)
-                if b_collide:
-                    continue
-                elif p_collide:
-                    continue
-                else:
-                    # Add the block to the list of objects
-                    block_list.add(block)
-                    all_sprites_list.add(block)
-
-    bll = len(block_list)
-
-    yellow_score = 0
-    green_score = 0
-    done = False
+    mainloop()
 
 
 def startGame():
     root.title("Popup")
-    
+
     host_button = Button(root, text="Host", command=host_action)
     client_button = Button(root, text="Client", command=client_action)
     root.geometry('100x50')
     host_button.pack(side='left')
     client_button.pack(side='right')
+    print("host at 445")
     root.mainloop()
-
-
-
+    print("host at 446")
     all_sprites_list = pygame.sprite.RenderPlain()
 
     block_list = pygame.sprite.RenderPlain()
@@ -631,56 +527,63 @@ def startGame():
 
     i = 0
     print("host at 526")
+    time.sleep(25)
+    message = ''
+
+    if hostOrClient == "Host":
+        s.accept()
     while done == False:
+
+
+        try:
+            message = s.recv(1024).decode("utf-8")
+            print(message)
+        except:
+            print("no message got")
+
         # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 done = True
-
-            time.sleep(5)
             print("host at 534")
-            try:
-                c, addr = s.accept()
-            except socket.error as msg:
-                print("ERROR:", msg)
 
-            message = s.recv(1024)
-            if message == "adown" or message == "dup":
+
+            if message == 'a':
                 Pacman1.changespeed(-30, 0)
-            if message == "ddown" or message == "aup":
+            if message == 'd':
                 Pacman1.changespeed(30, 0)
-            if message == "wdown" or message == "sup":
+            if message == 'w':
                 Pacman1.changespeed(0, -30)
-            if message == "sdown" or message == "wup":
+            if message == 's':
                 Pacman1.changespeed(0, 30)
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_a:
                     Pacman2.changespeed(-30, 0)
-                    s.send("adown")
+                    s.send('a'.encode("utf-8"))
                 if event.key == pygame.K_d:
                     Pacman2.changespeed(30, 0)
-                    s.send("ddown")
+                    s.send('d'.encode("utf-8"))
                 if event.key == pygame.K_w:
                     Pacman2.changespeed(0, -30)
-                    s.send("wdown")
+                    s.send('w'.encode("utf-8"))
                 if event.key == pygame.K_s:
                     Pacman2.changespeed(0, 30)
-                    s.send("sdown")
+                    s.send('s'.encode("utf-8"))
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_a:
                     Pacman2.changespeed(30, 0)
-                    s.send("aup")
+                    s.send('d'.encode("utf-8"))
                 if event.key == pygame.K_d:
                     Pacman2.changespeed(-30, 0)
-                    s.send("dup")
+                    s.send('a'.encode("utf-8"))
                 if event.key == pygame.K_w:
                     Pacman2.changespeed(0, 30)
-                    s.send("wup")
+                    s.send('s'.encode("utf-8"))
                 if event.key == pygame.K_s:
                     Pacman2.changespeed(0, -30)
-                    s.send("sup")
+                    s.send('w'.encode("utf-8"))
 
         # ALL EVENT PROCESSING SHOULD GO ABOVE THIS COMMENT
 
@@ -798,10 +701,25 @@ def doNext(message, left, all_sprites_list, block_list, monsta_list, pacman_coll
         clock.tick(10)
 
 
-
 if __name__ == "__main__":
+    
+    print("Welcome, please write 1 for starting a game, or 0 for joining a game.")
 
-    initialize()
+    start_or_join = input()
+
+    while True:
+        if start_or_join == 1:
+            print("server")
+            break
+        elif start_or_join == 0:
+            print("client")
+            break
+        else:
+            print("You must write 0 for joining a game or 1 for hosting a game.")
+
+    print("funtion ended")
 
 
-    pygame.quit()
+#startGame()
+
+#pygame.quit()
