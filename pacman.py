@@ -374,18 +374,6 @@ def host_new_server_action():
     print("Connected from ", addr)
     start_game_host(conn)
 
-    while True:
-
-        message = ""
-
-        def recv_data(message):
-            message = conn.recv(1024).decode('utf8')
-            print("Received ", message)
-
-        start_new_thread(recv_data, (message,))
-
-        msg = input()
-        conn.send(msg.encode('utf8'))
 
 
 def connect_session(ip, port):
@@ -406,16 +394,6 @@ def connect_session(ip, port):
 
     start_game_client(s)
 
-    while True:
-        msg = input()
-        s.sendall(msg.encode('utf8'))
-        message = ""
-
-        def recv_data(message):
-            message = s.recv(1024).decode('utf8')
-            print("Received ", message)
-
-        start_new_thread(recv_data, (message,))
 
 
 """ def host_action():
@@ -548,162 +526,154 @@ def start_game_host(conn):
     green_score = 0
     done = False
 
-    time.sleep(5)
+    time.sleep(1)
 
     while done == False:
 
         # receive client's move
-        message = ""
-        try:
-            def recv_data(message):
-                message = conn.recv(1024).decode("utf-8")
-                print("Host received: ", message)
+        messageclient = ""
 
-            start_new_thread(recv_data, (message,))
-        except:
-
-
-            if message == 'ad':
+        def recv_data():
+            messageclient = conn.recv(1024).decode("utf-8")
+            print("Host received: ", messageclient)
+            if messageclient == 'a':
                 Pacman2.changespeed(-30, 0)
-            if message == 'dd':
+            if messageclient == 'd':
                 Pacman2.changespeed(30, 0)
-            if message == 'wd':
+            if messageclient == 'w':
                 Pacman2.changespeed(0, -30)
-            if message == 'sd':
+            if messageclient == 's':
                 Pacman2.changespeed(0, 30)
 
-            if message == 'au':
-                Pacman2.changespeed(30, 0)
-            if message == 'du':
-                Pacman2.changespeed(-30, 0)
-            if message == 'wu':
-                Pacman2.changespeed(0, 30)
-            if message == 'su':
-                Pacman2.changespeed(0, -30)
+        start_new_thread(recv_data, ())
 
-            # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
-            for event in pygame.event.get():
-                # print("event type and key: ", event.type, event.key)
-                if event.type == pygame.QUIT:
-                    done = True
 
-                send_msg = ""
-                # make and send your move
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_h:
-                        Pacman1.changespeed(-30, 0)
-                        # s.send('a'.encode("utf-8"))
-                        send_msg = "h"
-                    if event.key == pygame.K_k:
-                        Pacman1.changespeed(30, 0)
-                        # s.send('d'.encode("utf-8"))
-                        send_msg = "k"
-                    if event.key == pygame.K_u:
-                        Pacman1.changespeed(0, -30)
-                        # s.send('w'.encode("utf-8"))
-                        send_msg = "u"
-                    if event.key == pygame.K_j:
-                        Pacman1.changespeed(0, 30)
-                        # s.send('s'.encode("utf-8"))
-                        send_msg = "j"
 
-                if event.type == pygame.KEYUP:
-                    if event.key == pygame.K_h:
-                        Pacman1.changespeed(30, 0)
-                        send_msg = "k"
-                    if event.key == pygame.K_k:
-                        Pacman1.changespeed(-30, 0)
-                        send_msg = "h"
-                    if event.key == pygame.K_u:
-                        Pacman1.changespeed(0, 30)
-                        send_msg = "j"
-                    if event.key == pygame.K_j:
-                        Pacman1.changespeed(0, -30)
-                        send_msg = "u"
 
-                if send_msg != "":
-                    print("host at line 620 with message ", send_msg)
-                    conn.send(send_msg.encode('utf-8'))
-            # ALL EVENT PROCESSING SHOULD GO ABOVE THIS COMMENT
 
-            # ALL GAME LOGIC SHOULD GO BELOW THIS COMMENT
-            Pacman1.update(wall_list, gate)
-            Pacman2.update(wall_list, gate)
+        # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
+        for event in pygame.event.get():
+            # print("event type and key: ", event.type, event.key)
+            if event.type == pygame.QUIT:
+                done = True
 
-            # returned = Pinky.changespeed(Pinky_directions, False, p_turn, p_steps, pl)
-            # p_turn = returned[0]
-            # p_steps = returned[1]
-            # Pinky.changespeed(Pinky_directions, False, p_turn, p_steps, pl)
-            # Pinky.update(wall_list, False)
-            #
-            returned = Blinky.changespeed(Blinky_directions, False, b_turn, b_steps, bl)
-            b_turn = returned[0]
-            b_steps = returned[1]
-            Blinky.changespeed(Blinky_directions, False, b_turn, b_steps, bl)
-            Blinky.update(wall_list, False)
-            #
-            # returned = Inky.changespeed(Inky_directions, False, i_turn, i_steps, il)
-            # i_turn = returned[0]
-            # i_steps = returned[1]
-            # Inky.changespeed(Inky_directions, False, i_turn, i_steps, il)
-            # Inky.update(wall_list, False)
-            #
-            # returned = Clyde.changespeed(Clyde_directions, "clyde", c_turn, c_steps, cl)
-            # c_turn = returned[0]
-            # c_steps = returned[1]
-            # Clyde.changespeed(Clyde_directions, "clyde", c_turn, c_steps, cl)
-            # Clyde.update(wall_list, False)
+            send_msg = ""
+            # make and send your move
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_h:
+                    Pacman1.changespeed(-30, 0)
+                    # s.send('a'.encode("utf-8"))
+                    send_msg = "h"
+                if event.key == pygame.K_k:
+                    Pacman1.changespeed(30, 0)
+                    # s.send('d'.encode("utf-8"))
+                    send_msg = "k"
+                if event.key == pygame.K_u:
+                    Pacman1.changespeed(0, -30)
+                    # s.send('w'.encode("utf-8"))
+                    send_msg = "u"
+                if event.key == pygame.K_j:
+                    Pacman1.changespeed(0, 30)
+                    # s.send('s'.encode("utf-8"))
+                    send_msg = "j"
 
-            # See if the Pacman block has collided with anything.
-            blocks_hit_list_yellow = pygame.sprite.spritecollide(Pacman1, block_list, True)
-            blocks_hit_list_green = pygame.sprite.spritecollide(Pacman2, block_list, True)
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_h:
+                    Pacman1.changespeed(30, 0)
+                    send_msg = "k"
+                if event.key == pygame.K_k:
+                    Pacman1.changespeed(-30, 0)
+                    send_msg = "h"
+                if event.key == pygame.K_u:
+                    Pacman1.changespeed(0, 30)
+                    send_msg = "j"
+                if event.key == pygame.K_j:
+                    Pacman1.changespeed(0, -30)
+                    send_msg = "u"
 
-            # Check the list of collisions.
-            if len(blocks_hit_list_yellow) > 0:
-                green_score += len(blocks_hit_list_yellow)
-            if len(blocks_hit_list_green) > 0:
-                yellow_score += len(blocks_hit_list_green)
-            # ALL GAME LOGIC SHOULD GO ABOVE THIS COMMENT
+            if send_msg != "":
+                print("host at line 620 with message ", send_msg)
+                conn.send(send_msg.encode('utf-8'))
+        # ALL EVENT PROCESSING SHOULD GO ABOVE THIS COMMENT
 
-            # ALL CODE TO DRAW SHOULD GO BELOW THIS COMMENT
-            screen.fill(black)
+        # ALL GAME LOGIC SHOULD GO BELOW THIS COMMENT
+        Pacman1.update(wall_list, gate)
+        Pacman2.update(wall_list, gate)
 
-            wall_list.draw(screen)
-            gate.draw(screen)
-            all_sprites_list.draw(screen)
-            monsta_list.draw(screen)
+        # returned = Pinky.changespeed(Pinky_directions, False, p_turn, p_steps, pl)
+        # p_turn = returned[0]
+        # p_steps = returned[1]
+        # Pinky.changespeed(Pinky_directions, False, p_turn, p_steps, pl)
+        # Pinky.update(wall_list, False)
+        #
+        returned = Blinky.changespeed(Blinky_directions, False, b_turn, b_steps, bl)
+        b_turn = returned[0]
+        b_steps = returned[1]
+        Blinky.changespeed(Blinky_directions, False, b_turn, b_steps, bl)
+        Blinky.update(wall_list, False)
+        #
+        # returned = Inky.changespeed(Inky_directions, False, i_turn, i_steps, il)
+        # i_turn = returned[0]
+        # i_steps = returned[1]
+        # Inky.changespeed(Inky_directions, False, i_turn, i_steps, il)
+        # Inky.update(wall_list, False)
+        #
+        # returned = Clyde.changespeed(Clyde_directions, "clyde", c_turn, c_steps, cl)
+        # c_turn = returned[0]
+        # c_steps = returned[1]
+        # Clyde.changespeed(Clyde_directions, "clyde", c_turn, c_steps, cl)
+        # Clyde.update(wall_list, False)
 
-            text = font.render("Green Score: " + str(green_score) + "/" + str(bll), True, red)
-            screen.blit(text, [10, 10])
-            text = font.render("Yellow Score: " + str(yellow_score) + "/" + str(bll), True, red)
-            screen.blit(text, [10, 30])
+        # See if the Pacman block has collided with anything.
+        blocks_hit_list_yellow = pygame.sprite.spritecollide(Pacman1, block_list, True)
+        blocks_hit_list_green = pygame.sprite.spritecollide(Pacman2, block_list, True)
 
-            if yellow_score + green_score == bll:
-                if yellow_score > green_score:
-                    doNext_h("Congratulations, Yellow won!", 145, all_sprites_list, block_list, monsta_list,
-                             pacman_collide,
-                             wall_list, gate, screen, font, clock)
-                if green_score > yellow_score:
-                    doNext_h("Congratulations, Green won!", 145, all_sprites_list, block_list, monsta_list,
-                             pacman_collide,
-                             wall_list, gate, screen, font, clock)
-            monsta_hit_list_yellow = pygame.sprite.spritecollide(Pacman1, monsta_list, False)
-            monsta_hit_list_green = pygame.sprite.spritecollide(Pacman2, monsta_list, False)
+        # Check the list of collisions.
+        if len(blocks_hit_list_yellow) > 0:
+            green_score += len(blocks_hit_list_yellow)
+        if len(blocks_hit_list_green) > 0:
+            yellow_score += len(blocks_hit_list_green)
+        # ALL GAME LOGIC SHOULD GO ABOVE THIS COMMENT
 
-            if monsta_hit_list_yellow:
-                doNext_h("Game Over, Yellow Wins", 180, all_sprites_list, block_list, monsta_list, pacman_collide,
-                         wall_list,
-                         gate, screen, font, clock)
-            if monsta_hit_list_green:
-                doNext_h("Game Over, Green Wins", 180, all_sprites_list, block_list, monsta_list, pacman_collide,
-                         wall_list,
-                         gate, screen, font, clock)
+        # ALL CODE TO DRAW SHOULD GO BELOW THIS COMMENT
+        screen.fill(black)
 
-            # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
+        wall_list.draw(screen)
+        gate.draw(screen)
+        all_sprites_list.draw(screen)
+        monsta_list.draw(screen)
 
-            pygame.display.flip()
+        text = font.render("Green Score: " + str(green_score) + "/" + str(bll), True, red)
+        screen.blit(text, [10, 10])
+        text = font.render("Yellow Score: " + str(yellow_score) + "/" + str(bll), True, red)
+        screen.blit(text, [10, 30])
 
-            clock.tick(10)
+        if yellow_score + green_score == bll:
+            if yellow_score > green_score:
+                doNext_h("Congratulations, Yellow won!", 145, all_sprites_list, block_list, monsta_list,
+                         pacman_collide,
+                         wall_list, gate, screen, font, clock)
+            if green_score > yellow_score:
+                doNext_h("Congratulations, Green won!", 145, all_sprites_list, block_list, monsta_list,
+                         pacman_collide,
+                         wall_list, gate, screen, font, clock)
+        monsta_hit_list_yellow = pygame.sprite.spritecollide(Pacman1, monsta_list, False)
+        monsta_hit_list_green = pygame.sprite.spritecollide(Pacman2, monsta_list, False)
+
+        if monsta_hit_list_yellow:
+            doNext_h("Game Over, Yellow Wins", 180, all_sprites_list, block_list, monsta_list, pacman_collide,
+                     wall_list,
+                     gate, screen, font, clock)
+        if monsta_hit_list_green:
+            doNext_h("Game Over, Green Wins", 180, all_sprites_list, block_list, monsta_list, pacman_collide,
+                     wall_list,
+                     gate, screen, font, clock)
+
+        # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
+
+        pygame.display.flip()
+
+        clock.tick(10)
 
 
 def start_game_client(s):
@@ -799,7 +769,7 @@ def start_game_client(s):
     green_score = 0
     done = False
     i = 0
-    time.sleep(5)
+    time.sleep(1)
     message = ''
     """ if hostOrClient == "Host":
         s.accept() """
@@ -819,59 +789,60 @@ def start_game_client(s):
                 if event.key == pygame.K_a:
                     Pacman2.changespeed(-30, 0)
                     # s.send('a'.encode("utf-8"))
-                    send_msg = "ad"
+                    send_msg = "a"
                 if event.key == pygame.K_d:
                     Pacman2.changespeed(30, 0)
                     # s.send('d'.encode("utf-8"))
-                    send_msg = "dd"
+                    send_msg = "d"
                 if event.key == pygame.K_w:
                     Pacman2.changespeed(0, -30)
                     # s.send('w'.encode("utf-8"))
-                    send_msg = "wd"
+                    send_msg = "w"
                 if event.key == pygame.K_s:
                     Pacman2.changespeed(0, 30)
                     # s.send('s'.encode("utf-8"))
-                    send_msg = "sd"
+                    send_msg = "s"
                 # s.send(send_msg.encode('utf-8'))
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_a:
                     Pacman2.changespeed(30, 0)
                     # s.send('d'.encode("utf-8"))
-                    send_msg = "au"
+                    send_msg = "d"
                 if event.key == pygame.K_d:
                     Pacman2.changespeed(-30, 0)
                     # s.send('a'.encode("utf-8"))
-                    send_msg = "du"
+                    send_msg = "a"
                 if event.key == pygame.K_w:
                     Pacman2.changespeed(0, 30)
                     # s.send('s'.encode("utf-8"))
-                    send_msg = "wu"
+                    send_msg = "s"
                 if event.key == pygame.K_s:
                     Pacman2.changespeed(0, -30)
                     # s.send('w'.encode("utf-8"))
-                    send_msg = "su"
+                    send_msg = "w"
                 # s.send(send_msg.encode('utf-8'))
             if send_msg != "":
                 s.send(send_msg.encode('utf-8'))
                 print("client at line 855 sent ", send_msg)
 
-        message = ""
+        messagehost = ""
 
-        def recv_data(message):
-            message = s.recv(1024).decode('utf8')
-            print("Received ", message)
+        def recv_data():
+            messagehost = s.recv(1024).decode('utf8')
+            print("Received ", messagehost)
+            if messagehost == 'h':
+                Pacman1.changespeed(-30, 0)
+            if messagehost == 'k':
+                Pacman1.changespeed(30, 0)
+            if messagehost == 'u':
+                Pacman1.changespeed(0, -30)
+            if messagehost == 'j':
+                Pacman1.changespeed(0, 30)
 
-        start_new_thread(recv_data, (message,))
+        messagehost = start_new_thread(recv_data, ())
 
             # update the host pacman
-        if message == 'h':
-            Pacman1.changespeed(-30, 0)
-        if message == 'k':
-            Pacman1.changespeed(30, 0)
-        if message == 'u':
-            Pacman1.changespeed(0, -30)
-        if message == 'j':
-            Pacman1.changespeed(0, 30)
+
 
         # ALL EVENT PROCESSING SHOULD GO ABOVE THIS COMMENT
         # ALL GAME LOGIC SHOULD GO BELOW THIS COMMENT
