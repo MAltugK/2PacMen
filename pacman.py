@@ -536,14 +536,15 @@ def start_game_host(conn):
         def recv_data():
             messageclient = conn.recv(1024).decode("utf-8")
             print("Host received: ", messageclient)
-            if messageclient == 'a':
-                Pacman2.changespeed(-30, 0)
-            if messageclient == 'd':
-                Pacman2.changespeed(30, 0)
-            if messageclient == 'w':
-                Pacman2.changespeed(0, -30)
-            if messageclient == 's':
-                Pacman2.changespeed(0, 30)
+            for letter in messageclient:
+                if letter == 'a':
+                    Pacman2.changespeed(-30, 0)
+                if letter == 'd':
+                    Pacman2.changespeed(30, 0)
+                if letter == 'w':
+                    Pacman2.changespeed(0, -30)
+                if letter == 's':
+                    Pacman2.changespeed(0, 30)
 
         start_new_thread(recv_data, ())
 
@@ -830,14 +831,15 @@ def start_game_client(s):
         def recv_data():
             messagehost = s.recv(1024).decode('utf8')
             print("Received ", messagehost)
-            if messagehost == 'h':
-                Pacman1.changespeed(-30, 0)
-            if messagehost == 'k':
-                Pacman1.changespeed(30, 0)
-            if messagehost == 'u':
-                Pacman1.changespeed(0, -30)
-            if messagehost == 'j':
-                Pacman1.changespeed(0, 30)
+            for letter in messagehost:
+                if letter == 'h':
+                    Pacman1.changespeed(-30, 0)
+                if letter == 'k':
+                    Pacman1.changespeed(30, 0)
+                if letter == 'u':
+                    Pacman1.changespeed(0, -30)
+                if letter == 'j':
+                    Pacman1.changespeed(0, 30)
 
         messagehost = start_new_thread(recv_data, ())
 
