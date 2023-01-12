@@ -180,12 +180,7 @@ class Player(pygame.sprite.Sprite):
         if x_collide:
             # Whoops, hit a wall. Go back to the old position
             self.rect.left = old_x
-            # self.rect.top=prev_y
-            # y_collide = pygame.sprite.spritecollide(self, walls, False)
-            # if y_collide:
-            #     # Whoops, hit a wall. Go back to the old position
-            #     self.rect.top=old_y
-            #     print('a')
+
         else:
 
             self.rect.top = new_y
@@ -195,12 +190,6 @@ class Player(pygame.sprite.Sprite):
             if y_collide:
                 # Whoops, hit a wall. Go back to the old position
                 self.rect.top = old_y
-                # self.rect.left=prev_x
-                # x_collide = pygame.sprite.spritecollide(self, walls, False)
-                # if x_collide:
-                #     # Whoops, hit a wall. Go back to the old position
-                #     self.rect.left=old_x
-                #     print('b')
 
         if gate != False:
             gate_hit = pygame.sprite.spritecollide(self, gate, False)
@@ -406,32 +395,7 @@ def connect_session(ip, port):
         print("Received ", data)
 
 
-""" def host_action():
-    # root.destroy()
-    print("host action")
-    host_new_server_action()
-    hostOrClient = "Host"
-    print("pout of host action")
-    mainloop()
-
-
-def client_action():
-    root.destroy()
-    hostOrClient = "Client"
-    connectButton = Button(IPpopup, text="Connect Session", command=connect_session).grid(row=2)
-    mainloop()
- """
-
 def start_game_host(conn):
-    """ root.title("Popup")
-    host_button = Button(root, text="Host", command=host_action)
-    client_button = Button(root, text="Client", command=client_action)
-    root.geometry('100x50')
-    host_button.pack(side='left')
-    client_button.pack(side='right')
-    print("host at 445")
-    root.mainloop()
-    print("host at 446") """
 
     # Call this function so the Pygame library can initialize itself
     pygame.init()
@@ -549,9 +513,6 @@ def start_game_host(conn):
     i = 0
     time.sleep(5)
 
-    """ if hostOrClient == "Host":
-        s.accept() """
-
 
     while done == False:
        
@@ -581,6 +542,7 @@ def start_game_host(conn):
             Pacman2.changespeed(0, -30)
 
         # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
+        
         for event in pygame.event.get():
             #print("event type and key: ", event.type, event.key)
             if event.type == pygame.QUIT:
@@ -642,11 +604,12 @@ def start_game_host(conn):
         # Pinky.changespeed(Pinky_directions, False, p_turn, p_steps, pl)
         # Pinky.update(wall_list, False)
         #
+        """ ghost.changeLocation() 
         returned = Blinky.changespeed(Blinky_directions, False, b_turn, b_steps, bl)
         b_turn = returned[0]
         b_steps = returned[1]
         Blinky.changespeed(Blinky_directions, False, b_turn, b_steps, bl)
-        Blinky.update(wall_list, False)
+        Blinky.update(wall_list, False) """
         #
         # returned = Inky.changespeed(Inky_directions, False, i_turn, i_steps, il)
         # i_turn = returned[0]
