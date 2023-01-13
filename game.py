@@ -9,65 +9,70 @@ red = (255, 0, 0)
 purple = (255, 0, 255)
 yellow = (255, 255, 0)
 
-class Game:
 
-    Gameicon = pygame.image.load('images/pacman.png')
-    pygame.display.set_icon(Gameicon)
+Gameicon = pygame.image.load('images/pacman.png')
+pygame.display.set_icon(Gameicon)
 
-    # This creates all the walls in room 1
-    def setupRoomOne(all_sprites_list):
-        # Make the walls. (x_pos, y_pos, width, height)
-        wall_list = pygame.sprite.RenderPlain()
+# This creates all the walls in room 1
+def setupRoomOne(all_sprites_list):
+    # Make the walls. (x_pos, y_pos, width, height)
+    wall_list = pygame.sprite.RenderPlain()
 
-        # This is a list of walls. Each is in the form [x, y, width, height]
-        walls = [[0, 0, 6, 600],
-                [0, 0, 600, 6],
-                [0, 600, 606, 6],
-                [600, 0, 6, 606],
-                [300, 0, 6, 66],
-                [60, 60, 186, 6],
-                [360, 60, 186, 6],
-                [60, 120, 66, 6],
-                [60, 120, 6, 126],
-                [180, 120, 246, 6],
-                [300, 120, 6, 66],
-                [480, 120, 66, 6],
-                [540, 120, 6, 126],
-                [120, 180, 126, 6],
-                [120, 180, 6, 126],
-                [360, 180, 126, 6],
-                [480, 180, 6, 126],
-                [180, 240, 6, 126],
-                [180, 360, 246, 6],
-                [420, 240, 6, 126],
-                [240, 240, 42, 6],
-                [324, 240, 42, 6],
-                [240, 240, 6, 66],
-                [240, 300, 126, 6],
-                [360, 240, 6, 66],
-                [0, 300, 66, 6],
-                [540, 300, 66, 6],
-                [60, 360, 66, 6],
-                [60, 360, 6, 186],
-                [480, 360, 66, 6],
-                [540, 360, 6, 186],
-                [120, 420, 366, 6],
-                [120, 420, 6, 66],
-                [480, 420, 6, 66],
-                [180, 480, 246, 6],
-                [300, 480, 6, 66],
-                [120, 540, 126, 6],
-                [360, 540, 126, 6]
-                ]
+    # This is a list of walls. Each is in the form [x, y, width, height]
+    walls = [[0, 0, 6, 600],
+            [0, 0, 600, 6],
+            [0, 600, 606, 6],
+            [600, 0, 6, 606],
+            [300, 0, 6, 66],
+            [60, 60, 186, 6],
+            [360, 60, 186, 6],
+            [60, 120, 66, 6],
+            [60, 120, 6, 126],
+            [180, 120, 246, 6],
+            [300, 120, 6, 66],
+            [480, 120, 66, 6],
+            [540, 120, 6, 126],
+            [120, 180, 126, 6],
+            [120, 180, 6, 126],
+            [360, 180, 126, 6],
+            [480, 180, 6, 126],
+            [180, 240, 6, 126],
+            [180, 360, 246, 6],
+            [420, 240, 6, 126],
+            [240, 240, 42, 6],
+            [324, 240, 42, 6],
+            [240, 240, 6, 66],
+            [240, 300, 126, 6],
+            [360, 240, 6, 66],
+            [0, 300, 66, 6],
+            [540, 300, 66, 6],
+            [60, 360, 66, 6],
+            [60, 360, 6, 186],
+            [480, 360, 66, 6],
+            [540, 360, 6, 186],
+            [120, 420, 366, 6],
+            [120, 420, 6, 66],
+            [480, 420, 6, 66],
+            [180, 480, 246, 6],
+            [300, 480, 6, 66],
+            [120, 540, 126, 6],
+            [360, 540, 126, 6]
+            ]
 
-        # Loop through the list. Create the wall, add it to the list
-        for item in walls:
-            wall = Wall(item[0], item[1], item[2], item[3], blue)
-            wall_list.add(wall)
-            all_sprites_list.add(wall)
+    # Loop through the list. Create the wall, add it to the list
+    for item in walls:
+        wall = Wall(item[0], item[1], item[2], item[3], blue)
+        wall_list.add(wall)
+        all_sprites_list.add(wall)
 
-        # return our new list
-        return wall_list
+    # return our new list
+    return wall_list
+
+def setupGate(all_sprites_list):
+    gate = pygame.sprite.RenderPlain()
+    gate.add(Wall(282, 242, 42, 2, white))
+    all_sprites_list.add(gate)
+    return gate
 
 class Wall(pygame.sprite.Sprite):
     # Constructor function
@@ -116,14 +121,12 @@ class Player(pygame.sprite.Sprite):
 
     # Constructor function
     def __init__(self, x, y, filename):
+
         # Call the parent's constructor
         pygame.sprite.Sprite.__init__(self)
 
         # Set height, width
         self.image = pygame.image.load(filename).convert()
-        self.x = x
-        self.y = y
-        self.vel = 3
 
         # Make our top-left corner the passed-in location.
         self.rect = self.image.get_rect()
@@ -132,25 +135,13 @@ class Player(pygame.sprite.Sprite):
         self.prev_x = x
         self.prev_y = y
 
-    def draw(self, win):
+    def getPos(self):
+        return self.rect.left, self.rect.top
+
+    def drawIt(self, win):
         self.draw(win)
     
-    def move(self, wall_list, gate):
-        keys = pygame.key.get_pressed() # dict of all pressed keys, 1: pressed, 0: released
 
-        if keys[pygame.K_LEFT]:
-            self.changespeed(-30, 0)
-
-        if keys[pygame.K_RIGHT]:
-            self.changespeed(30, 0)
-
-        if keys[pygame.K_UP]:
-            self.changespeed(0, -30)
-        
-        if keys[pygame.K_DOWN]:
-            self.changespeed(0, 30)
-
-        self.update(wall_list, gate)
 
     # Clear the speed of the player
     def prevdirection(self):
@@ -159,8 +150,8 @@ class Player(pygame.sprite.Sprite):
 
     # Change the speed of the player
     def changespeed(self, x, y):
-        self.change_x += x
-        self.change_y += y
+        self.change_x = x
+        self.change_y = y
 
     # Find a new position for the player
     def update(self, walls, gate):
@@ -241,7 +232,7 @@ class Ghost(Player):
             else:
                 if turn < l:
                     turn += 1
-                elif ghost == "clyde":
+                elif ghost == "Clyde":
                     turn = 2
                 else:
                     turn = 0
@@ -252,117 +243,12 @@ class Ghost(Player):
         except IndexError:
             return [0, 0]
     
-    def draw(self, win):
+    def drawIt(self, win):
         self.draw(win)
 
-Pinky_directions = [
-    [0, -30, 4],
-    [15, 0, 9],
-    [0, 15, 11],
-    [-15, 0, 23],
-    [0, 15, 7],
-    [15, 0, 3],
-    [0, -15, 3],
-    [15, 0, 19],
-    [0, 15, 3],
-    [15, 0, 3],
-    [0, 15, 3],
-    [15, 0, 3],
-    [0, -15, 15],
-    [-15, 0, 7],
-    [0, 15, 3],
-    [-15, 0, 19],
-    [0, -15, 11],
-    [15, 0, 9]
-]
 
-Blinky_directions = [
-    [0, -15, 4],
-    [15, 0, 9],
-    [0, 15, 11],
-    [15, 0, 3],
-    [0, 15, 7],
-    [-15, 0, 11],
-    [0, 15, 3],
-    [15, 0, 15],
-    [0, -15, 15],
-    [15, 0, 3],
-    [0, -15, 11],
-    [-15, 0, 3],
-    [0, -15, 11],
-    [-15, 0, 3],
-    [0, -15, 3],
-    [-15, 0, 7],
-    [0, -15, 3],
-    [15, 0, 15],
-    [0, 15, 15],
-    [-15, 0, 3],
-    [0, 15, 3],
-    [-15, 0, 3],
-    [0, -15, 7],
-    [-15, 0, 3],
-    [0, 15, 7],
-    [-15, 0, 11],
-    [0, -15, 7],
-    [15, 0, 5]
-]
-
-Inky_directions = [
-    [30, 0, 2],
-    [0, -15, 4],
-    [15, 0, 10],
-    [0, 15, 7],
-    [15, 0, 3],
-    [0, -15, 3],
-    [15, 0, 3],
-    [0, -15, 15],
-    [-15, 0, 15],
-    [0, 15, 3],
-    [15, 0, 15],
-    [0, 15, 11],
-    [-15, 0, 3],
-    [0, -15, 7],
-    [-15, 0, 11],
-    [0, 15, 3],
-    [-15, 0, 11],
-    [0, 15, 7],
-    [-15, 0, 3],
-    [0, -15, 3],
-    [-15, 0, 3],
-    [0, -15, 15],
-    [15, 0, 15],
-    [0, 15, 3],
-    [-15, 0, 15],
-    [0, 15, 11],
-    [15, 0, 3],
-    [0, -15, 11],
-    [15, 0, 11],
-    [0, 15, 3],
-    [15, 0, 1],
-]
-
-Clyde_directions = [
-    [-30, 0, 2],
-    [0, -15, 4],
-    [15, 0, 5],
-    [0, 15, 7],
-    [-15, 0, 11],
-    [0, -15, 7],
-    [-15, 0, 3],
-    [0, 15, 7],
-    [-15, 0, 7],
-    [0, 15, 15],
-    [15, 0, 15],
-    [0, -15, 3],
-    [-15, 0, 11],
-    [0, -15, 7],
-    [15, 0, 3],
-    [0, -15, 11],
-    [15, 0, 9],
-]
-
-pl = len(Pinky_directions) - 1
+""" pl = len(Pinky_directions) - 1
 bl = len(Blinky_directions) - 1
 il = len(Inky_directions) - 1
-cl = len(Clyde_directions) - 1
+cl = len(Clyde_directions) - 1 """
 
